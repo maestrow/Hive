@@ -1,11 +1,12 @@
-#canvas{
-  height: 300px;
-  width: 300px;
+#canvas {
   background: #eee;
   
-  /* centering */
+  /* centering http://designshack.net/articles/css/how-to-center-anything-with-css/ */
   position: absolute;
-  margin: -150px 0 0 -150px;
+  height: 400px;
+  width: 600px;
+  margin-top: -200px;
+  margin-left: -300px;
   left: 50%;
   top: 50%;
 }
