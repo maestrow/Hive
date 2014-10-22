@@ -1,13 +1,17 @@
-#canvas {
+#svg {
   background: #eee;
   
   /* centering http://designshack.net/articles/css/how-to-center-anything-with-css/ */
   position: absolute;
-  height: 400px;
-  width: 600px;
-  margin-top: -200px;
-  margin-left: -300px;
+  height: 800px;
+  width: 1000px;
+  margin-top: -400px;
+  margin-left: -500px;
   left: 50%;
   top: 50%;
 }
  
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
