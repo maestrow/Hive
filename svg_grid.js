@@ -3,7 +3,7 @@
   var svg = setupSvg('#svg'),
       xScale = getXScale(svg, 200),
       yScale = getYScale(svg, xScale),
-      hexSize = 20
+      hexSize = 10
       gridSize = 1; // размер грида задается размером радиуса в ячейках
 
   var width = xScale.domain()[1],
@@ -18,13 +18,14 @@
   points = transform(points, xScale, yScale);
   drawHexagon(svg, centers, points);
 
+  // Pieces
+  addPiece('body', 100, 100, xScale(hexSize), 'queenbee');
+
   // Drag'n'Drop
-  //d3.selectAll('.piece').call(d3.behavior.drag().on('drag', dragMove));
   var drag = d3.behavior.drag()
-    .origin(function(d) { return d; })
-    .on('dragstart', dragStart)
-    .on('drag', dragMove)
-  d3.select('#cell0').call(drag);
+    .origin(function (d) { return d; })
+    .on('drag', dragMove);
+  d3.selectAll('.piece').call(drag);
 
 
   // ====================================================================================
@@ -48,6 +49,8 @@
     return d3.scale.linear().domain([0, xScale.invert(h)]).range([0, h]);
   }
 
+  // Board
+
   function drawCenters (svg, points, radius) {
     svg.selectAll('circle').data(points).enter().append('circle')
       .attr('cx', function (d) { return d.x; })
@@ -67,24 +70,41 @@
         .attr('points', function (d) {
           return pointsToString(points);
         })
-        .attr('transform', dataTranslate);
+        .attr('transform', function (d) { return 'translate(' + d.x + ', ' + d.y + ')' });
+  }
+
+  // Pieces
+
+  function addPiece(parent, x, y, size, name) {
+    var n = 'piece-' + name,
+        width = 2 * Math.cos(Math.PI/6) * size,
+        height = 2 * size;
+
+    d3.select(parent)
+      .select('#'+n)
+      .data([{x: x, y: y}])
+      .enter()
+      .append('div')
+        .attr('id', n)
+        .classed('piece hexagon hexagon2', true)
+        .style('left', function (d) { return d.x + 'px'; })
+        .style('top', function (d) { return d.y + 'px'; })
+        .style('width', height+'px')
+        .style('height', width+'px')
+      .append('div')
+        .classed('hexagon-in1', true)
+      .append('div')
+        .classed('hexagon-in2', true)
+        .style('background-image', 'url(img/pieces/' + name + '.png)');
   }
 
   function dragMove(d) {
-    var e = d3.event;
-    d.x = e.x //- d.dragStart.dx;
-    d.y = e.y //- d.dragStart.dy;
-    d3.select(this).attr('transform', dataTranslate);
-  }
+    d.x = d3.event.x;
+    d.y = d3.event.y;
 
-  function dragStart(d) {
-    var e = d3.event;
-    d.dragStart = { dx: e.sourceEvent.clientX - d.x, dy: e.sourceEvent.clientY - d.y };
-    //console.log(d3.event);
-  }
-
-  function dataTranslate (d) { 
-    return 'translate(' + d.x + ', ' + d.y + ')' 
+    d3.select(this)
+      .style('left', d.x + 'px')
+      .style('top', d.y + 'px');
   }
 
 
