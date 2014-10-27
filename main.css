@@ -1,6 +1,10 @@
-#svg {
-  background: #eee;
-  
+* {
+  box-sizing: border-box;
+}
+
+#game-field {
+  border: 1px black solid;
+
   /* centering http://designshack.net/articles/css/how-to-center-anything-with-css/ */
   position: absolute;
   height: 800px;
@@ -10,8 +14,39 @@
   left: 50%;
   top: 50%;
 }
- 
+
+#svg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #eee;
+}
+
+/* for zoom & pan */
 .overlay {
   fill: none;
   pointer-events: all;
+}
+
+.control-panel {
+  width: 100px;
+  height: 50px;
+  position: relative;
+}
+
+#players-panel {
+  background-color: blue;
+  left: 10px;
+  top: 20px;
+}
+
+#opponents-panel {
+  background-color: red;
+  left: 200px;
+  top: 20px;
+}
+
+
+.cell {
+  cursor: pointer;
 }

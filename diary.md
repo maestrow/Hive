@@ -66,4 +66,5 @@ Over canvas vs over svg.
 ## Прочие how to & know how
 
 - Как центрировать элемент по вертикали и горизонтали? См. в [статье](http://designshack.net/articles/css/how-to-center-anything-with-css/), раздел Dead Center an Element.
-
+- http://csshexagon.com/
+- http://stackoverflow.com/questions/12992351/how-to-update-elements-of-d3-force-layout-when-the-underlying-data-changes
