@@ -1,53 +1,40 @@
-(function(){
+define(['d3', 'app/zoompan'], function(d3, zoompan) {
 
-  var svg = setupSvg('#svg'),
-      xScale = getXScale(svg, 200),
-      yScale = getYScale(svg, xScale),
-      hexSize = 10
-      gridSize = 1; // размер грида задается размером радиуса в ячейках
+  var svg = zoompan.setupSvg('#svg', 200),
+      hexSize = 5,
+      gridSize = 8, // размер грида задается размером радиуса в ячейках
+      grid;
 
-  var width = xScale.domain()[1],
-      height = yScale.domain()[1];
+  zoompan.addHandler(zoom);
 
-  // Points
-  var centers = getHexagonalGrid(hexSize, gridSize);
-  var points = getHexagonPoints(0, 0, hexSize);
+  return {
+    setupBoard: setupBoard
+  };
 
-  // Draw
-  centers = transform(centers, xScale, yScale, width/2, height/2);
-  points = transform(points, xScale, yScale);
-  drawHexagon(svg, centers, points);
+  function setupBoard () {
+    // Points
+    var centers = getHexagonalGrid(hexSize, gridSize);
+    var points = getHexagonPoints(0, 0, hexSize);
 
-  // Pieces
-  addPiece('body', 100, 100, xScale(hexSize), 'queenbee');
+    // Draw
+    centers = transform(centers, svg.xScale, svg.yScale, svg.width/2, svg.height/2);
+    points = transform(points, svg.xScale, svg.yScale);
+    grid = drawGrid(svg.container, centers, points);
 
-  // Drag'n'Drop
-  var drag = d3.behavior.drag()
-    .origin(function (d) { return d; })
-    .on('drag', dragMove);
-  d3.selectAll('.piece').call(drag);
+    // Pieces
+    addPiece('#game-field', 100, 100, svg.xScale(hexSize), 'queenbee');
 
+    // Drag'n'Drop
+    var drag = d3.behavior.drag()
+      .origin(function (d) { return d; })
+      .on('drag', dragMove);
+    d3.selectAll('.piece').call(drag);
+  }
 
   // ====================================================================================
   // === D3 Functions
 
-  function setupSvg(selector) {
-    var svg = d3.select(selector);
-        width = svg.node().offsetWidth,
-        height = svg.node().offsetHeight;
-    return svg
-      .attr('width', width)
-      .attr('height', height);
-  }
 
-  function getXScale (svg, maxValue) {
-    return d3.scale.linear().domain([0, maxValue]).range([0, svg.node().offsetWidth]);
-  }
-
-  function getYScale (svg, xScale) {
-    var h = svg.node().offsetHeight;
-    return d3.scale.linear().domain([0, xScale.invert(h)]).range([0, h]);
-  }
 
   // Board
 
@@ -58,8 +45,9 @@
       .attr('r', radius || 1);
   }
 
-  function drawHexagon (svg, centers, points) {
-    svg.selectAll('.cell')
+  function drawGrid (svg, centers, points) {
+    var strPoints = pointsToString(points);
+    return svg.selectAll('.cell')
       .data(centers)
       .enter()
         .append('polyline')
@@ -67,44 +55,66 @@
         .classed('cell', true)
         .attr('fill', 'white')
         .attr('stroke', 'black')
-        .attr('points', function (d) {
-          return pointsToString(points);
-        })
+        .attr('points', strPoints)
         .attr('transform', function (d) { return 'translate(' + d.x + ', ' + d.y + ')' });
   }
 
   // Pieces
 
   function addPiece(parent, x, y, size, name) {
-    var n = 'piece-' + name,
-        width = 2 * Math.cos(Math.PI/6) * size,
-        height = 2 * size;
-
-    d3.select(parent)
-      .select('#'+n)
+    var n = 'piece-' + name;
+    
+    var newPiece = d3.select(parent)
+      .selectAll('#'+n)
       .data([{x: x, y: y}])
       .enter()
       .append('div')
         .attr('id', n)
-        .classed('piece hexagon hexagon2', true)
-        .style('left', function (d) { return d.x + 'px'; })
-        .style('top', function (d) { return d.y + 'px'; })
-        .style('width', height+'px')
-        .style('height', width+'px')
+        .classed('piece hexagon hexagon2', true);
+
+    newPiece
       .append('div')
         .classed('hexagon-in1', true)
       .append('div')
         .classed('hexagon-in2', true)
         .style('background-image', 'url(img/pieces/' + name + '.png)');
+
+    updatePieces(newPiece);
+  }
+
+  function updatePieces (selection) {
+
+    var size = svg.xScale(hexSize),
+        width = 2 * Math.cos(Math.PI/6) * size,
+        height = 2 * size;
+
+    selection
+      .style('left', function (d) { 
+        return svg.x(d.x + zoompan.dx) + 'px'; 
+      })
+      .style('top', function (d) { 
+        return svg.y(d.y + zoompan.dy) + 'px'; 
+      })
+      .style('width', height * zoompan.scale + 'px')
+      .style('height', width * zoompan.scale + 'px');
   }
 
   function dragMove(d) {
     d.x = d3.event.x;
     d.y = d3.event.y;
 
-    d3.select(this)
-      .style('left', d.x + 'px')
-      .style('top', d.y + 'px');
+    updatePieces(d3.select(this), 0, 0);
+    console.log(d);
+  }
+
+  function zoom() {
+
+    //grid
+    //  .attr('transform', function (d) { 
+    //    return "translate(" + svg.x(d.x) + "," + svg.y(d.y) + ")"; 
+    //  });
+
+    updatePieces(d3.selectAll('.piece'));
   }
 
 
@@ -115,7 +125,7 @@
     dx = dx || 0;
     dy = dy || 0;
     return points.map(function (p) { 
-      return { x: xScale(p.x + dx), y: yScale(p.y + dy) };
+      return { x: xScale(p.x) + dx, y: yScale(p.y) + dy };
     });
   }
 
@@ -161,4 +171,4 @@
     return points;
   }
 
-})();
+});
