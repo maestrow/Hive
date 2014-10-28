@@ -22,12 +22,6 @@
   background: #eee;
 }
 
-/* for zoom & pan */
-.overlay {
-  fill: none;
-  pointer-events: all;
-}
-
 .control-panel {
   width: 100px;
   height: 50px;
@@ -51,3 +45,4 @@
   cursor: pointer;
   position: absolute;
 }
+

@@ -30,7 +30,7 @@ define(['d3'], function (d3) {
         yScale = getYScale(svg, xScale);
 
     container = getContainer(svg);
-    
+
     return {
       container: container,
       xScale: xScale,

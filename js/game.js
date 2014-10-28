@@ -22,7 +22,7 @@ define(['d3', 'app/zoompan'], function(d3, zoompan) {
     grid = drawGrid(svg.container, centers, points);
 
     // Pieces
-    addPiece('#game-field', 100, 100, svg.xScale(hexSize), 'queenbee');
+    addPiece('#game-field', 0, 0, svg.xScale(hexSize), 'queenbee');
 
     // Drag'n'Drop
     var drag = d3.behavior.drag()
@@ -70,7 +70,7 @@ define(['d3', 'app/zoompan'], function(d3, zoompan) {
       .enter()
       .append('div')
         .attr('id', n)
-        .classed('piece hexagon hexagon2', true);
+        .classed('piece hexagon', true);
 
     newPiece
       .append('div')
@@ -82,28 +82,46 @@ define(['d3', 'app/zoompan'], function(d3, zoompan) {
     updatePieces(newPiece);
   }
 
+  function addPiece_test(parent, x, y, size, name) {
+    var n = 'piece-' + name;
+    
+    var newPiece = d3.select(parent)
+      .selectAll('#'+n)
+      .data([{x: x, y: y}])
+      .enter()
+      .append('div')
+        .attr('id', n)
+        .classed('piece', true)
+        .style('background-repeat', 'no-repeat')
+        .style('background-color', 'lightgray')
+        .style('background-size', 'cover')
+        .style('background-image', 'url(img/pieces/' + name + '.png)');
+
+    updatePieces(newPiece);
+  }
+
   function updatePieces (selection) {
 
     var size = svg.xScale(hexSize),
-        width = 2 * Math.cos(Math.PI/6) * size,
-        height = 2 * size;
+        width = 2 * Math.cos(Math.PI/6) * size * zoompan.scale,
+        height = 2 * size * zoompan.scale;
 
     selection
       .style('left', function (d) { 
-        return svg.x(d.x + zoompan.dx) + 'px'; 
+        return svg.x(d.x) - height/2 + 'px'; 
       })
       .style('top', function (d) { 
-        return svg.y(d.y + zoompan.dy) + 'px'; 
+        return svg.y(d.y) - width/2 + 'px'; 
       })
-      .style('width', height * zoompan.scale + 'px')
-      .style('height', width * zoompan.scale + 'px');
+      .style('width', height + 'px')
+      .style('height', width + 'px');
   }
 
   function dragMove(d) {
     d.x = d3.event.x;
     d.y = d3.event.y;
 
-    updatePieces(d3.select(this), 0, 0);
+    updatePieces(d3.select(this));
     console.log(d);
   }
 
