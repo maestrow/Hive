@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<style type="text/css">
+.box1
+{
+  height: 150px;
+  width: 150px;
+  background-color: yellow;
+}
+
+.box2
+{
+  position: absolute;
+  height: 50px;
+  width: 50px;
+  background-color: green;
+}
+
+.svg {
+  height: 100px;
+  width: 100px;
+  background-color: lightgray;
+}
+
+</style>
+<div class="box1" onclick="alert('box1 clicked');">
+    <div class="box2" onclick="alert('box2 clicked');"></div>
+    <svg class="svg" onclick="alert('svg clicked');">
+      <circle cx="50" cy="50" r="50" onclick="alert('circle clicked')" style="pointer-events:fill";/>
+    </svg>
+</div>

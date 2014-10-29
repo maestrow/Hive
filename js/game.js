@@ -26,9 +26,14 @@ define(['d3', 'app/zoompan'], function(d3, zoompan) {
 
     // Drag'n'Drop
     var drag = d3.behavior.drag()
-      .origin(function (d) { return d; })
+      .origin(function (d) { 
+        return { x: svg.x(d.x), y: svg.y(d.y) }; 
+      })
       .on('drag', dragMove);
-    d3.selectAll('.piece').call(drag);
+    d3.selectAll('.piece')
+      .call(drag)
+      .on(getWheelEventName(), mousewheel)
+      ;
   }
 
   // ====================================================================================
@@ -82,24 +87,6 @@ define(['d3', 'app/zoompan'], function(d3, zoompan) {
     updatePieces(newPiece);
   }
 
-  function addPiece_test(parent, x, y, size, name) {
-    var n = 'piece-' + name;
-    
-    var newPiece = d3.select(parent)
-      .selectAll('#'+n)
-      .data([{x: x, y: y}])
-      .enter()
-      .append('div')
-        .attr('id', n)
-        .classed('piece', true)
-        .style('background-repeat', 'no-repeat')
-        .style('background-color', 'lightgray')
-        .style('background-size', 'cover')
-        .style('background-image', 'url(img/pieces/' + name + '.png)');
-
-    updatePieces(newPiece);
-  }
-
   function updatePieces (selection) {
 
     var size = svg.xScale(hexSize),
@@ -108,33 +95,41 @@ define(['d3', 'app/zoompan'], function(d3, zoompan) {
 
     selection
       .style('left', function (d) { 
-        return svg.x(d.x) - height/2 + 'px'; 
+        return svg.x(d.x) + 'px'; 
       })
       .style('top', function (d) { 
-        return svg.y(d.y) - width/2 + 'px'; 
+        return svg.y(d.y) + 'px'; 
       })
       .style('width', height + 'px')
       .style('height', width + 'px');
   }
 
   function dragMove(d) {
-    d.x = d3.event.x;
-    d.y = d3.event.y;
+    d.x = svg.x.invert(d3.event.x);
+    d.y = svg.y.invert(d3.event.y);
 
-    updatePieces(d3.select(this));
-    console.log(d);
+    d3.select(this)
+      .style('left', d3.event.x + 'px')
+      .style('top', d3.event.y + 'px');
   }
 
   function zoom() {
-
     //grid
     //  .attr('transform', function (d) { 
     //    return "translate(" + svg.x(d.x) + "," + svg.y(d.y) + ")"; 
     //  });
-
     updatePieces(d3.selectAll('.piece'));
   }
 
+  function mousewheel() {
+    zoompan.zoom(d3.event.wheelDelta/120);
+  }
+
+  function getWheelEventName() {
+    return 'onwheel' in document.createElement('div') ? 'wheel' : // Modern browsers support 'wheel'
+      document.onmousewheel !== undefined ? 'mousewheel' : // Webkit and IE support at least 'mousewheel'
+      'DOMMouseScroll'; // let's assume that remaining browsers are older Firefox
+  }
 
   // ====================================================================================
   // === Logic Functions
