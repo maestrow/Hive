@@ -6,6 +6,6 @@ require.config({
   }
 });
 
-require(['d3', 'app/game'], function(d3, game) {
+require(['d3', 'app/d3patch', 'app/game'], function(d3, undefined, game) {
   game.setupBoard();
 });
