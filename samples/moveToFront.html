@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<svg id="svg" width="600" height="600"></svg>
+
+<script type="text/javascript" src="http://d3js.org/d3.v3.js"></script>
+
+<script type="text/javascript">
+
+  d3.selection.prototype.moveToFront = function() {
+    return this.each(function(){
+      this.parentNode.appendChild(this);
+    });
+  };
+
+  var updatePos = function (selection) {
+    selection
+      .attr({
+        cx: function(d) { return d.x; },
+        cy: function(d) { return d.y; }
+      });
+  }
+
+  var dragMove = function (d) {
+    d.x = d3.event.x;
+    d.y = d3.event.y;
+    updatePos(d3.select(this));
+  }
+
+  var data = d3.range(10).map(function (d) {
+    return { id: d, x: d*20+100, y: 100 };
+  });
+
+  var drag = d3.behavior.drag()
+    .on('drag', dragMove)
+    .origin(function (d) { return d; });
+
+  var circles = d3.select("svg").selectAll("circle")
+      .data(data)
+      .enter()
+      .append("circle")
+      .attr({
+        id: function (d) { return 'c' + d.id; },
+        r:20,
+        fill:"#aaa",
+        stroke: "#000"
+      })
+      .on("mouseover",function(){
+        var sel = d3.select(this);
+        sel.moveToFront();
+        //console.log('mouseover');
+      })
+      .call(drag);
+
+  updatePos(circles);
+
+
+</script>
