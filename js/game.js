@@ -1,11 +1,9 @@
 define(['d3', 'app/zoompan'], function(d3, zoompan) {
 
-  var svg = zoompan.setupSvg('#svg', 200),
-      hexSize = 5,
+  var zoomer = zoompan.setupSvg(d3.select('#svg')),
+      hexSize = 20,
       gridSize = 8, // размер грида задается размером радиуса в ячейках
       grid;
-
-  zoompan.addHandler(zoom);
 
   return {
     setupBoard: setupBoard
@@ -17,29 +15,12 @@ define(['d3', 'app/zoompan'], function(d3, zoompan) {
     var points = getHexagonPoints(0, 0, hexSize);
 
     // Draw
-    centers = transform(centers, svg.xScale, svg.yScale, svg.width/2, svg.height/2);
-    points = transform(points, svg.xScale, svg.yScale);
-    grid = drawGrid(svg.container, centers, points);
-
-    // Pieces
-    addPiece('#game-field', 0, 0, svg.xScale(hexSize), 'queenbee');
-
-    // Drag'n'Drop
-    var drag = d3.behavior.drag()
-      .origin(function (d) { 
-        return { x: svg.x(d.x), y: svg.y(d.y) }; 
-      })
-      .on('drag', dragMove);
-    d3.selectAll('.piece')
-      .call(drag)
-      .on(getWheelEventName(), mousewheel)
-      ;
+    centers = transformPoints(centers, zoomer.width/2, zoomer.height/2);
+    grid = drawGrid(zoomer.container, centers, points);
   }
 
   // ====================================================================================
   // === D3 Functions
-
-
 
   // Board
 
@@ -64,88 +45,20 @@ define(['d3', 'app/zoompan'], function(d3, zoompan) {
         .attr('transform', function (d) { return 'translate(' + d.x + ', ' + d.y + ')' });
   }
 
-  // Pieces
-
-  function addPiece(parent, x, y, size, name) {
-    var n = 'piece-' + name;
-    
-    var newPiece = d3.select(parent)
-      .selectAll('#'+n)
-      .data([{x: x, y: y}])
-      .enter()
-      .append('div')
-        .attr('id', n)
-        .classed('piece hexagon', true);
-
-    newPiece
-      .append('div')
-        .classed('hexagon-in1', true)
-      .append('div')
-        .classed('hexagon-in2', true)
-        .style('background-image', 'url(img/pieces/' + name + '.png)');
-
-    updatePieces(newPiece);
-  }
-
-  function updatePieces (selection) {
-
-    var size = svg.xScale(hexSize),
-        width = 2 * Math.cos(Math.PI/6) * size * zoompan.scale,
-        height = 2 * size * zoompan.scale;
-
-    selection
-      .style('left', function (d) { 
-        return svg.x(d.x) + 'px'; 
-      })
-      .style('top', function (d) { 
-        return svg.y(d.y) + 'px'; 
-      })
-      .style('width', height + 'px')
-      .style('height', width + 'px');
-  }
-
-  function dragMove(d) {
-    d.x = svg.x.invert(d3.event.x);
-    d.y = svg.y.invert(d3.event.y);
-
-    d3.select(this)
-      .style('left', d3.event.x + 'px')
-      .style('top', d3.event.y + 'px');
-  }
-
-  function zoom() {
-    //grid
-    //  .attr('transform', function (d) { 
-    //    return "translate(" + svg.x(d.x) + "," + svg.y(d.y) + ")"; 
-    //  });
-    updatePieces(d3.selectAll('.piece'));
-  }
-
-  function mousewheel() {
-    zoompan.zoom(d3.event.wheelDelta/120);
-  }
-
-  function getWheelEventName() {
-    return 'onwheel' in document.createElement('div') ? 'wheel' : // Modern browsers support 'wheel'
-      document.onmousewheel !== undefined ? 'mousewheel' : // Webkit and IE support at least 'mousewheel'
-      'DOMMouseScroll'; // let's assume that remaining browsers are older Firefox
-  }
-
-  // ====================================================================================
-  // === Logic Functions
-
-  function transform(points, xScale, yScale, dx, dy) {
-    dx = dx || 0;
-    dy = dy || 0;
-    return points.map(function (p) { 
-      return { x: xScale(p.x) + dx, y: yScale(p.y) + dy };
-    });
-  }
-
   function pointsToString(points) {
     return points.map(function (p) { 
       return p.x + ',' + p.y;
     }).join(' ');
+  }
+
+
+  // ====================================================================================
+  // === Logic Functions
+
+  function transformPoints(points, dx, dy) {
+    return points.map(function (p) {
+      return { x: p.x+dx, y: p.y+dy };
+    });
   }
 
   /**
