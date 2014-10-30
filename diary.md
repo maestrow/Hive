@@ -54,6 +54,15 @@
 - [Применение эффекта fade](http://bl.ocks.org/alignedleft/9612839). Для этого возникает необходимость клонирования исходного объекта. У меня возникли проблемы при совмещении клонирования и d'n'd.
 - http://stackoverflow.com/questions/14167863/how-can-i-bring-a-circle-to-the-front-with-d3 - Лучшее решение. [Пример в живую](https://gist.github.com/trtg/3922684). 
 
+Для создания изображения в шестиугольнике средствами svg есть варианты:
+
+- [clip path](http://codepen.io/aleenabyrne/pen/zfmax)
+- [pattern](http://stackoverflow.com/questions/3796025/fill-svg-path-element-with-a-background-image)
+
+Но можно просто разместить шестиугольник и изображение в одной группе так, чтобы шестиугольник не перекрывал изображение.
+
+[Drag + Zoom](http://bl.ocks.org/mbostock/6123708) - пример, демонстрирующий одновременное применение двух поведений: масштабирования и перемещения. 
+
 
 ## D3
 

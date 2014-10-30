@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+
+<style>
+  svg {
+    background-color: lightgray;
+  }
+
+  image {
+    cursor: pointer;
+  }
+
+  #piece2 {
+    background-image: url('/img/pieces/queenbee.png');
+  }
+</style>
+Изображение в шестиугольнике средствами svg.
+
+<!-- Вариант 1: clipPath -->
+<svg id="svg1" width="1000" height="800">
+  <clipPath id="hex-mask">
+    <polygon points="20,0 10.000000000000002,-17.32050807568877 -9.999999999999996,-17.320508075688775 -20,-2.4492935982947065e-15 -10.000000000000009,17.320508075688767 9.999999999999986,17.32050807568878 20,4.898587196589413e-15" >
+    </polygon>
+  </clipPath>
+
+  <g transform="translate(60, 60) scale(20)">
+
+    <polyline id="piece1" fill="white" stroke="black" points="20,0 10.000000000000002,-17.32050807568877 -9.999999999999996,-17.320508075688775 -20,-2.4492935982947065e-15 -10.000000000000009,17.320508075688767 9.999999999999986,17.32050807568878 20,4.898587196589413e-15"  >
+    </polyline>
+    <image xlink:href="/img/pieces/queenbee.png" x="0" y="0" height="10" width="10" clip-path="url(#hex-mask)" />
+  </g>
+</svg>

@@ -2,7 +2,7 @@ require.config({
   baseUrl: 'js/lib', 
   paths: {
     d3: 'd3/d3',
-    app: '..'  // relative to baseUrl
+    app: '../app'  // relative to baseUrl
   }
 });
 
