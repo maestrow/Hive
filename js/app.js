@@ -2,6 +2,7 @@ require.config({
   baseUrl: 'js/lib', 
   paths: {
     d3: 'd3/d3',
+    underscore: 'underscore/underscore',
     app: '../app'  // relative to baseUrl
   }
 });

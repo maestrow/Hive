@@ -1,36 +1,48 @@
-define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup, boardlogic) {
+define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup, BoardLogic) {
 
   var svg = d3.select('#svg'),
       board = boardSetup.setupSvg(svg),
       hexSize = 20,
       gridSize = 8, // размер грида задается размером радиуса в ячейках
       grid,
-      hexMaskId = 'hex-mask';
+      hexMaskId = 'hex-mask'
+      boardlogic = new BoardLogic({ hexEdgeLength: hexSize, gridRadius: gridSize, boardWidth: board.width, boardHeight: board.height })
 
   return {
     setupBoard: function () {
 
       // Points
-      var centers = boardlogic.getHexagonalGrid(hexSize, gridSize);
-      centers = boardlogic.transformPoints(centers, board.width/2, board.height/2);
-      var hexPoints = boardlogic.getHexagonPoints(0, 0, hexSize);
+      var centers = boardlogic.getHexagonalGrid();
+      var hexPoints = boardlogic.getHexagonPoints();
 
       // Draw
       addClipPath(svg, hexPoints, hexMaskId);
       grid = drawGrid(board.grid, centers, hexPoints);
 
       // Pieces
-      piecesData = [{x: 100, y: 100, name: 'queenbee'}, {x: 200, y: 200, name: 'queenbee'}];
+      piecesData = [
+        {x: 100, y: 100, name: 'queenbee', fill: 'white' }, 
+        {x: 100, y: 150, name: 'ant', fill: 'black' }
+      ];
       pieces = drawPieces(board.pieces, piecesData, hexPoints, hexSize, hexMaskId);
 
       var drag = d3.behavior.drag()
         .origin(function (d) { return d; })
         .on('dragstart', dragStart)
-        .on('drag', dragMove);
+        .on('drag', dragMove)
+        .on('dragend', dragEnd);
 
       pieces
         .call(drag)
         .on('mousedown', function () { d3.select(this).moveToFront(); });
+
+      //
+      board.board.on('mousemove', mousemove);
+      //d3.selectAll('.cell')
+      //  .on('mouseover.x', mouseover)
+      //  .on('mouseout.x', mouseout)
+        //.on('mousemove', mousemove)
+        ;
     }
   };
 
@@ -55,12 +67,11 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
         .append('polyline')
         .attr({
           'id': function (d, i) { return 'cell' + i; },
-          'fill': 'white',
-          'stroke': 'black',
           'points': strPoints,
           'transform': function (d) { return 'translate(' + d.x + ', ' + d.y + ')' }
         })
-        .classed('cell', true);
+        .classed('cell', true)
+        .classed('cell-ordinal', true);
   }
 
   function addClipPath (svg, points, id) {
@@ -93,8 +104,8 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
     pieces
       .append('polyline')
       .attr({
-        'fill': 'white',
-        'stroke': 'black',
+        'fill': function (d) { return d.fill; },
+        'stroke': 'green',
         'points': strPoints,
       });
 
@@ -120,14 +131,41 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
     });
   }
 
-  function dragStart () {
+  function dragStart (d) {
     d3.event.sourceEvent.stopPropagation();
+    d.origin = { x: d.x, y: d.y };
   }
 
   function dragMove (d) {
     d.x = d3.event.x;
     d.y = d3.event.y;
     updatePieces(d3.select(this));
+
   }
 
-});
+  function dragEnd (d) {
+    if (d.x < d.origin.x) {
+      d.x = d.origin.x;
+      d.y = d.origin.y;
+    }
+    updatePieces(d3.select(this));
+
+  }
+
+  function mouseover () {
+    d3.select(this)
+      .classed('cell-highlited', true)
+      .classed('cell-ordinal', false);
+  }
+
+  function mouseout () {
+    d3.select(this)
+      .classed('cell-highlited', false)
+      .classed('cell-ordinal', true);
+  }
+
+  function mousemove () {
+    var c = d3.mouse(this);
+    console.log(c[0] - board.width/2, c[1]- board.height/2);
+  }
+}); 

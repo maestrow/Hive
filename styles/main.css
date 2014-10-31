@@ -47,3 +47,14 @@
   position: absolute;
 }
 
+.cell {
+  stroke: black;
+}
+
+.cell-ordinal {
+  fill: white;
+}
+
+.cell-highlited {
+  fill: lightgray;
+}

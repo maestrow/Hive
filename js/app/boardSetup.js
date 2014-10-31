@@ -32,6 +32,7 @@ define(['d3'], function (d3) {
       var zoomArea = addZoomArea(svg, zoomBehavior);
       
       var api = {
+        board: zoomArea.board,
         grid: zoomArea.grid,
         pieces: zoomArea.pieces,
         scaleX: scaleX,
@@ -88,6 +89,7 @@ define(['d3'], function (d3) {
     var pieces = board.append('g').attr('id', 'pieces');
 
     return { 
+      board: board,
       grid: grid, 
       pieces: pieces
     };

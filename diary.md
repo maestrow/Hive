@@ -72,6 +72,15 @@
 - [Interactive SVG + Canvas Plot](http://bl.ocks.org/sxv/4485778)
 
 
+## Coffeescript
+
+- http://brizzled.clapper.org/blog/2012/02/18/a-case-for-coffeescript-in-the-browser/
+- http://forgivingworm.wordpress.com/2010/09/27/running-coffeescript-in-browser/
+- http://stackoverflow.com/questions/17341122/link-and-execute-external-javascript-file-hosted-on-github
+ 
+Coffeescript можно выполнять и загружать внутри тэга `<script type="text/coffeescript">`, но отлаживать в браузере возможности нет.
+
+
 ## Прочие how to & know how
 
 - Как центрировать элемент по вертикали и горизонтали? См. в [статье](http://designshack.net/articles/css/how-to-center-anything-with-css/), раздел Dead Center an Element.
