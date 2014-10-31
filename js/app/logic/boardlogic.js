@@ -32,6 +32,8 @@ define(['underscore'], function (_) {
     var q = 2/3 * x / this.hexEdgeLength;
     var r = (-1/3 * x + 1/3*Math.sqrt(3) * y) / this.hexEdgeLength;
 
+    var hexAxialCoords = cubeToAxial(hexRoundCube(axialToCube({x:q, y:r})));
+    return hexAxialCoords;
   };
   
   return Board;
@@ -84,13 +86,13 @@ define(['underscore'], function (_) {
   /**
     Округляет координаты ячейки в кубической системе координат
   */
-  function hexRoundCube (x, y, z) {
-    var rx = Math.round(x)
-        ry = Math.round(y),
-        rz = Math.round(z),
-        x_diff = Math.abs(rx - x),
-        y_diff = Math.abs(ry - y),
-        z_diff = Math.abs(rz - z);
+  function hexRoundCube (point) {
+    var rx = Math.round(point.x)
+        ry = Math.round(point.y),
+        rz = Math.round(point.z),
+        x_diff = Math.abs(rx - point.x),
+        y_diff = Math.abs(ry - point.y),
+        z_diff = Math.abs(rz - point.z);
 
     if (x_diff > y_diff && x_diff > z_diff)
         rx = -ry-rz;
@@ -103,25 +105,45 @@ define(['underscore'], function (_) {
   }
 
   /**
+    point {x, y}
+  */
+  function axialToCube (point) {
+    return { x: point.x, y: -point.x-point.y, z: point.y };
+  }
+
+  /**
+    point {x, y, z}
+  */
+  function cubeToAxial (point) {
+    return { x: point.x, y: point.z };
+  }
+
+
+  // ====================================================================================
+  // === Неиспользуемые функции - черновики, кандидаты на удаление
+
+  /**
+    point = {x, y}
     http://www.redblobgames.com/grids/hexagons/#coordinates
     Перевод в наклонную систему координат
     Ось x наклонена на 30 градусов.
   */
-  function decartTo30 (x, y) {
+  function decartTo30 (point) {
     var angle = Math.PI/6, // 30 градусов
-        xa = x / Math.cos(angle),
-        ya = y - xa * Math.sin(angle);
+        xa = point.x / Math.cos(angle),
+        ya = point.y - xa * Math.sin(angle);
     return { x:xa, y:ya };
   }
 
   /**
+  point {x, y}
   x, y - координаты точны в наклонной системе координат
   */
-  function pointToHex (x, y) {
+  function pointToHex (point) {
     var height = 2 * this.hexEdgeLength * Math.cos(Math.PI/6),
         width = 2 * this.hexEdgeLength;
 
-    return { x: x/width, y: y/height };
+    return { x: point.x/width, y: point.y/height };
   }
 
 });

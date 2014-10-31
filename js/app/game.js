@@ -5,8 +5,9 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
       hexSize = 20,
       gridSize = 8, // размер грида задается размером радиуса в ячейках
       grid,
-      hexMaskId = 'hex-mask'
-      boardlogic = new BoardLogic({ hexEdgeLength: hexSize, gridRadius: gridSize, boardWidth: board.width, boardHeight: board.height })
+      hexMaskId = 'hex-mask',
+      boardlogic = new BoardLogic({ hexEdgeLength: hexSize, gridRadius: gridSize, boardWidth: board.width, boardHeight: board.height }),
+      lastCell;
 
   return {
     setupBoard: function () {
@@ -166,6 +167,20 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
 
   function mousemove () {
     var c = d3.mouse(this);
-    console.log(c[0] - board.width/2, c[1]- board.height/2);
+    var cell = boardlogic.findNearestCenter(c[0], c[1]);
+    if (isCellChanged(cell))
+      console.log(cell.x, cell.y);
+
+    //console.log(c[0] - board.width/2, c[1]- board.height/2);
+  }
+
+  function isCellChanged (cell) {
+    if (lastCell && cell && lastCell.x == cell.x && lastCell.y == cell.y)
+      return false;
+    else if (!lastCell && !cell)
+      return false;
+
+    lastCell = cell;
+    return true;
   }
 }); 
