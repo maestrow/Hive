@@ -15,7 +15,7 @@ define(['d3'], function (d3) {
 
   return {
     setupSvg: function (svg, width, height) {
-    
+
       width = width || svg.node().offsetWidth,
       height = height || svg.node().offsetHeight;
       svg
@@ -24,13 +24,13 @@ define(['d3'], function (d3) {
 
       var scaleX = d3.scale.linear().domain([0, width]).range([0, width]),
           scaleY = d3.scale.linear().domain([0, height]).range([0, height]);
-      
+
       // Module variables
       zoomBehavior = d3.behavior.zoom().x(scaleX).y(scaleY)
         .scaleExtent([zoomMin, zoomMax])
         .on('zoom', onZoom);
       var zoomArea = addZoomArea(svg, zoomBehavior);
-      
+
       var api = {
         board: zoomArea.board,
         grid: zoomArea.grid,
@@ -53,7 +53,7 @@ define(['d3'], function (d3) {
         width: { get: function () { return width; } },
         height: { get: function () { return height; } }
       });
-      
+
       return api;
     }
   };
@@ -64,48 +64,53 @@ define(['d3'], function (d3) {
 
   function zoomOut() {
     zoom (zoomBehavior.scale() - zoomDelta);
-  } 
+  }
 
 
   // ====================================================================================
   // === Private Functions
 
   function addZoomArea(svg, zoom) {
-    
+
+    function appendRect(selection) {
+      selection
+        .append('rect')
+        .style('fill', 'none')
+        .style('pointer-events', 'all')
+        .attr('width', svg.node().offsetWidth)
+        .attr('height', svg.node().offsetHeight);
+    }
+
     var zoomArea = svg
       .append('g')
       .attr('id', 'zoom')
       .call(zoom);
 
-    zoomArea
-      .append('rect')
-      .style('fill', 'none')
-      .style('pointer-events', 'all')
-      .attr('width', svg.node().offsetWidth)
-      .attr('height', svg.node().offsetHeight);
+    appendRect(zoomArea);
 
     var board = zoomArea.append('g').attr('id', 'board');
+    appendRect(board);
     var grid = board.append('g').attr('id', 'grid');
     var pieces = board.append('g').attr('id', 'pieces');
 
-    return { 
+    return {
       board: board,
-      grid: grid, 
+      grid: grid,
       pieces: pieces
     };
   }
 
   function onZoom() {
-    
+
     dx = d3.event.translate[0];
     dy = d3.event.translate[1];
     scale = d3.event.scale;
-    
+
     d3.select('#board')
       .attr('transform', 'translate(' + d3.event.translate + ') scale(' + scale + ')');
-    
+
     events.zoom(dx, dy, scale);
-    
+
     //console.log(scale);
   }
 

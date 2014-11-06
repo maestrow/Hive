@@ -7,13 +7,14 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
       grid,
       hexMaskId = 'hex-mask',
       boardlogic = new BoardLogic({ hexEdgeLength: hexSize, gridRadius: gridSize, boardWidth: board.width, boardHeight: board.height }),
-      lastCell;
+      lastCell,
+      draggedPiece;
 
   return {
     setupBoard: function () {
 
       // Points
-      var centers = boardlogic.getHexagonalGrid();
+      var centers = boardlogic.getCellsCenters();
       var hexPoints = boardlogic.getHexagonPoints();
 
       // Draw
@@ -22,7 +23,7 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
 
       // Pieces
       piecesData = [
-        {x: 100, y: 100, name: 'queenbee', fill: 'white' }, 
+        {x: 100, y: 100, name: 'queenbee', fill: 'white' },
         {x: 100, y: 150, name: 'ant', fill: 'black' }
       ];
       pieces = drawPieces(board.pieces, piecesData, hexPoints, hexSize, hexMaskId);
@@ -47,7 +48,7 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
     }
   };
 
-  
+
   // ====================================================================================
   // === D3 Functions
 
@@ -67,8 +68,9 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
       .enter()
         .append('polyline')
         .attr({
-          'id': function (d, i) { return 'cell' + i; },
+          'id': function (d, i) { return getCellId(d.cell) },
           'points': strPoints,
+          //'display': 'none',
           'transform': function (d) { return 'translate(' + d.x + ', ' + d.y + ')' }
         })
         .classed('cell', true)
@@ -84,7 +86,7 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
   }
 
   function pointsToString(points) {
-    return points.map(function (p) { 
+    return points.map(function (p) {
       return p.x + ',' + p.y;
     }).join(' ');
   }
@@ -120,21 +122,24 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
         'width': coverSize,
         'clip-path': 'url(#' + hexMaskId + ')'
       });
-    
+
     updatePieces(pieces);
     return pieces;
   }
 
   function updatePieces(selection) {
-    
-    selection.attr('transform', function (d) { 
+
+    selection.attr('transform', function (d) {
       return 'translate (' + d.x + ', ' + d.y + ')';
     });
   }
 
   function dragStart (d) {
     d3.event.sourceEvent.stopPropagation();
+    draggedPiece = this;
+    var mouse = d3.mouse(d3.select('#board').node());
     d.origin = { x: d.x, y: d.y };
+    d.mouseDelta = { x: mouse[0] - d.x, y: mouse[1] - d.y };
   }
 
   function dragMove (d) {
@@ -145,12 +150,16 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
   }
 
   function dragEnd (d) {
-    if (d.x < d.origin.x) {
-      d.x = d.origin.x;
-      d.y = d.origin.y;
+    //d.x = d.origin.x;
+    //d.y = d.origin.y;
+    if (lastCell) {
+      var cellCenter = d3.select('#' + getCellId(lastCell)).datum();
+      d.x = cellCenter.x;
+      d.y = cellCenter.y;
     }
-    updatePieces(d3.select(this));
 
+    updatePieces(d3.select(this));
+    draggedPiece = null;
   }
 
   function mouseover () {
@@ -166,10 +175,26 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
   }
 
   function mousemove () {
-    var c = d3.mouse(this);
-    var cell = boardlogic.findNearestCenter(c[0], c[1]);
-    if (isCellChanged(cell))
-      console.log(cell.x, cell.y);
+    var point = BoardLogic.pointToObj(d3.mouse(this));
+
+    if (draggedPiece) {
+      var mouseDelta = d3.select(draggedPiece).datum().mouseDelta;
+      point = BoardLogic.sub(point, mouseDelta);
+    }
+
+    var cell = boardlogic.findNearestCenter(point);
+    if (isCellChanged(cell)) {
+      if (lastCell)
+        d3.select('#' + getCellId(lastCell))
+          .classed('cell-highlited', false)
+          .classed('cell-ordinal', true);
+      if (cell)
+        d3.select('#' + getCellId(cell))
+          .classed('cell-highlited', true)
+          .classed('cell-ordinal', false);
+      lastCell = cell;
+      //console.log(lastCell);
+    }
 
     //console.log(c[0] - board.width/2, c[1]- board.height/2);
   }
@@ -180,7 +205,10 @@ define(['d3', 'app/boardSetup', 'app/logic/boardlogic'], function(d3, boardSetup
     else if (!lastCell && !cell)
       return false;
 
-    lastCell = cell;
     return true;
   }
-}); 
+
+  function getCellId(coords) {
+    return 'cell_x' + coords.x + '_y' + coords.y;
+  }
+});

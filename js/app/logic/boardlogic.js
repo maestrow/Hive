@@ -2,48 +2,58 @@
 http://www.redblobgames.com/grids/hexagons/
 */
 define(['underscore'], function (_) {
-  
+
   // ====================================================================================
   // === Private Variables
 
   var configProps = ['hexEdgeLength', 'gridRadius', 'boardWidth', 'boardHeight'];
- 
- 
+
+
   // ====================================================================================
   // === Public API
-  
+
 
 
   var Board = function (config) {
-    
+
     _.extend(this, _.pick(config, configProps));
 
     var hexagonPoints = getHexagonPoints(0, 0, this.hexEdgeLength);
-    var hexagonalGrid = getHexagonalGrid(this.hexEdgeLength, this.gridRadius);
-    hexagonalGrid = transformPoints(hexagonalGrid, this.boardWidth/2, this.boardHeight/2);
+    var cellsCenters = getCellsCenters.call(this);
+    transformPoints(cellsCenters, this.boardWidth/2, this.boardHeight/2);
     this.getHexagonPoints = function () { return hexagonPoints; };
-    this.getHexagonalGrid = function () { return hexagonalGrid; };
+    this.getCellsCenters = function () { return cellsCenters; };
   };
 
 
-  Board.prototype.findNearestCenter = function (x, y) {
-    x -= this.boardWidth/2;
-    y -= this.boardHeight/2;
+  Board.prototype.findNearestCenter = function (point) {
+    var x = point.x - this.boardWidth/2;
+    var y = point.y - this.boardHeight/2;
     var q = 2/3 * x / this.hexEdgeLength;
     var r = (-1/3 * x + 1/3*Math.sqrt(3) * y) / this.hexEdgeLength;
 
     var hexAxialCoords = cubeToAxial(hexRoundCube(axialToCube({x:q, y:r})));
     return hexAxialCoords;
   };
-  
+
+  Board.sub = function (p1, p2) {
+    return { x: p1.x - p2.x, y: p1.y - p2.y };
+  }
+
+  Board.pointToObj = function (array) {
+    return { x: array[0], y: array[1] };
+  }
+
   return Board;
+
 
   // ====================================================================================
   // === Private Functions
 
   function transformPoints (points, dx, dy) {
-    return points.map(function (p) {
-      return { x: p.x+dx, y: p.y+dy };
+    return points.forEach(function (p) {
+      p.x += dx;
+      p.y += dy;
     });
   };
 
@@ -62,26 +72,32 @@ define(['underscore'], function (_) {
     return points;
   };
 
-  function getHexagonalGrid (edgeLength, gridRadius) {
-    var points = [{x:0, y:0}],
-        height = edgeLength * 2,
-        width = edgeLength * Math.cos(Math.PI/6) * 2;
 
-    for (var r=1; r<=gridRadius; r++) {           // радиусы
-      var angle = Math.PI/6; 
-      for (var m=0; m<6; m++) {             // ребра
-        var x = r * width * Math.cos(angle),
-            y = r * width * Math.sin(angle);
-        for (var k=1; k <= r; k++) {        // элементы на ребре
-          points.push({x:x, y:y});
-          x = x + width * Math.cos(angle + 2*Math.PI/3);
-          y = y + width * Math.sin(angle + 2*Math.PI/3);
-        }
-        angle += Math.PI/3; // 60 град
+  function getCellsCenters () {
+
+    return getGridCells(this.gridRadius).map(function (cell) {
+      var point = axisX0(cellToPoint.call(this, cell));
+      return {
+        cell: cell,
+        x: point.x,
+        y: point.y
       };
+    }, this);
+  }
+
+  /**
+  Возвращает координаты всеХ ячеек грида радиусом r
+  r = gridRadius
+  */
+  function getGridCells (r) {
+    var cells = [];
+    for (var y = -r; y <= r; y++) {
+      for (var x = Math.max(-r-y, -r); x <= Math.min(r-y,r); x++) {
+        cells.push({x:x,y:y});
+      }
     }
-    return points;
-  };
+    return cells;
+  }
 
   /**
     Округляет координаты ячейки в кубической системе координат
@@ -118,9 +134,15 @@ define(['underscore'], function (_) {
     return { x: point.x, y: point.z };
   }
 
+  /**
+  cell - координаты ячейки
+  возвращает координаты точки в наклонной системе координат
+  */
+  function cellToPoint (cell) {
+    var height = 2 * this.hexEdgeLength * Math.cos(Math.PI/6);
 
-  // ====================================================================================
-  // === Неиспользуемые функции - черновики, кандидаты на удаление
+    return { x: cell.x * height, y: cell.y * height };
+  }
 
   /**
     point = {x, y}
@@ -128,22 +150,43 @@ define(['underscore'], function (_) {
     Перевод в наклонную систему координат
     Ось x наклонена на 30 градусов.
   */
-  function decartTo30 (point) {
+  function axisX30 (point) {
     var angle = Math.PI/6, // 30 градусов
         xa = point.x / Math.cos(angle),
         ya = point.y - xa * Math.sin(angle);
     return { x:xa, y:ya };
   }
 
-  /**
-  point {x, y}
-  x, y - координаты точны в наклонной системе координат
-  */
-  function pointToHex (point) {
-    var height = 2 * this.hexEdgeLength * Math.cos(Math.PI/6),
-        width = 2 * this.hexEdgeLength;
-
-    return { x: point.x/width, y: point.y/height };
+  function axisX0 (point) {
+    var angle = Math.PI/6, // 30 градусов
+        x = Math.cos(angle) * point.x,
+        y = point.y + Math.sin(angle) * point.x;
+    return { x: x, y: y };
   }
+
+
+  // ====================================================================================
+  // === Неиспользуемые функции - черновики, кандидаты на удаление
+
+  function getHexagonalGrid2 (edgeLength, gridRadius) {
+    var points = [{x:0, y:0}],
+        height = edgeLength * 2,
+        width = edgeLength * Math.cos(Math.PI/6) * 2;
+
+    for (var r=1; r<=gridRadius; r++) {           // радиусы
+      var angle = Math.PI/6;
+      for (var m=0; m<6; m++) {             // ребра
+        var x = r * width * Math.cos(angle),
+            y = r * width * Math.sin(angle);
+        for (var k=1; k <= r; k++) {        // элементы на ребре
+          points.push({x:x, y:y});
+          x = x + width * Math.cos(angle + 2*Math.PI/3);
+          y = y + width * Math.sin(angle + 2*Math.PI/3);
+        }
+        angle += Math.PI/3; // 60 град
+      };
+    }
+    return points;
+  };
 
 });
