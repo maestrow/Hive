@@ -1,12 +1,13 @@
 define([
   'd3',
   'app/boardSetup',
+  'app/zoomSetup',
   'app/logic/grid',
   'app/logic/point'],
-  function(d3, boardSetup, GridLogic, Point) {
+  function(d3, boardSetup, zoomSetup, GridLogic, Point) {
 
-  var svg = d3.select('#svg'),
-      board = boardSetup.setupSvg(svg),
+  var board = boardSetup.setup(),
+      zoom = zoomSetup.setup(board.svg, board.board, board.zoomArea),
       hexSize = 20,
       gridSize = 8, // размер грида задается размером радиуса в ячейках
       grid,
@@ -23,15 +24,15 @@ define([
       var hexPoints = gridLogic.getHexagonPoints();
 
       // Draw
-      addClipPath(svg, hexPoints, hexMaskId);
-      grid = drawGrid(board.grid, centers, hexPoints);
+      addClipPath(board.svg, hexPoints, hexMaskId);
+      grid = drawGrid(d3.select('#grid'), centers, hexPoints);
 
       // Pieces
       var piecesData = [
         {x: 100, y: 100, name: 'queenbee', fill: 'white' },
         {x: 100, y: 150, name: 'ant', fill: 'black' }
       ];
-      var pieces = drawPieces(board.pieces, piecesData, hexPoints, hexSize, hexMaskId);
+      var pieces = drawPieces(d3.select('#pieces'), piecesData, hexPoints, hexSize, hexMaskId);
 
       var drag = d3.behavior.drag()
         .origin(function (d) { return d; })
@@ -43,7 +44,7 @@ define([
         .call(drag)
         .on('mousedown', function () { d3.select(this).moveToFront(); });
 
-      board.board.on('mousemove', mousemove);
+      d3.select('#board').on('mousemove', mousemove);
     }
   };
 
